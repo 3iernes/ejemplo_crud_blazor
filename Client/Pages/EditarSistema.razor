@@ -1,0 +1,59 @@
+﻿@page "/sistema"
+@page "/sistema/{Id:int}"
+
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+@if(Id is null)
+{
+	<PageTitle>Crear sistema</PageTitle>
+	<h3>Crear sistema</h3>
+}
+else
+{
+	<PageTitle>Editar @sistema.Nombre</PageTitle>
+	<h3>Editar sistema</h3>
+}
+
+<EditForm Model="sistema" OnSubmit="HandleSubmit">
+	<div>
+		<label for="nombre">Nombre</label>
+		<InputText id="nombre" @bind-Value="sistema.Nombre" class="form-control"/>
+	</div><br />
+	<button type="submit" class="btn-primary">Guardar</button>
+</EditForm>
+
+
+@code {
+
+	[Parameter]
+	public int? Id { get; set; }
+
+	SistemasDists sistema = new SistemasDists { Nombre = "" };
+
+	protected override async Task OnParametersSetAsync()
+	{
+		if(Id is not null)
+		{
+			var result = await HttpClient.GetFromJsonAsync<SistemasDists>($"api/sistema/{Id}");
+
+			if(result is not null)
+			{
+				sistema = result;
+			}
+		}
+	}
+
+	async Task HandleSubmit()
+	{
+		if(Id is null)
+		{
+			await HttpClient.PostAsJsonAsync("api/sistema", sistema);
+		}
+		else
+		{
+			await HttpClient.PutAsJsonAsync($"api/sistema/{Id}", sistema);
+		}
+		NavigationManager.NavigateTo("/sistemas");
+	}
+}

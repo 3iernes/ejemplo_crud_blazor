@@ -1,0 +1,80 @@
+﻿@page "/sistemas"
+
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Sistemas</PageTitle>
+
+<h3>Sistema</h3>
+
+@if (sistemas is null)
+{
+    <p><em>Cargando...</em></p>
+}
+else
+{
+    <button type="button" @onclick="CrearSistema" class="btn-primary">
+        Crear sistema
+    </button>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nombre</th>
+                <th>Creado</th>
+                <th>Accion</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var sistema in sistemas)
+            {
+                <tr>
+                    <td>@sistema.Id</td>
+                    <td>@sistema.Nombre</td>
+                    <td>@sistema.FechaCreacion</td>
+                    <td>
+                        <button type="button" @onclick="(()=>EditarSist(sistema.Id))" class="btn-primary">
+                            Editar
+                        </button>
+                        <button type="button" @onclick="(()=>EliminarSist(sistema.Id))" class="btn-danger">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    List<SistemasDists> sistemas = new List<SistemasDists>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Http.GetFromJsonAsync<List<SistemasDists>>("api/sistema");
+        if (result != null)
+            sistemas = result;
+    }
+
+    async Task EliminarSist(int id)
+    {
+        var result = await Http.DeleteAsync($"api/sistema/{id}");
+        if(result.IsSuccessStatusCode)
+        {
+            var reFetchSistemas = await Http.GetFromJsonAsync<List<SistemasDists>>("api/sistema");
+            if (reFetchSistemas != null)
+                sistemas = reFetchSistemas;
+        }
+    }
+
+
+    void CrearSistema()
+    {
+        NavigationManager.NavigateTo("/sistema");
+    }
+    void EditarSist(int id)
+    {
+        NavigationManager.NavigateTo($"/sistema/{id}");
+    }
+}
